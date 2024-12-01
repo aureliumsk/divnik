@@ -1,0 +1,53 @@
+.delete,
+.edit {
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: none;
+    font-weight: bold;
+}
+.container {
+    display: flex;
+}
+.homework>* {
+    margin: 0rem;
+    padding: 0rem;
+}
+.homework {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    padding: 0 5px;
+    border: outset lightgrey;
+}
+.homework,
+.lesson>button {
+    background: white;
+    border-radius: 12px;
+}
+.lesson>h2 {
+    font-size: 1.5rem;
+}
+.lesson>button {
+    width: fit-content;
+    padding: 0 10px;
+    align-self: center;
+    height: 35px;
+}
+.lesson>*:not(h2) {
+    margin: 5px 0;
+}
+.lesson {
+
+    display: flex;
+    min-width: auto;
+    flex-direction: column;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 12px;
+    /* border: 0.5rem outset gray; */
+    background: whitesmoke;
+}
+.lesson>h2 {
+    text-align: center;
+}

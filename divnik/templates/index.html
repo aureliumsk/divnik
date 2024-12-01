@@ -1,0 +1,14 @@
+{% extends "baseline.html" %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}" />
+<script type="module" src="{{ url_for('static', filename='index.js') }}"></script>
+{% endblock %}
+{% block title %}Индекс{% endblock %}
+{% block content %}
+<div id="wrapper" class="container">
+    {% for uid, lesson in lessons|dictsort %}
+        {% include "lesson.html" %}
+    {% endfor %}
+</div>
+<a href="{{ url_for('pages.import_from_file') }}">Импортировать информацию о предметах из CSV файла</a>
+{% endblock %}

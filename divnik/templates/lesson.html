@@ -1,0 +1,12 @@
+<article data-lesson-id="{{ uid }}" class="lesson">
+    <h2>{{ lesson.name }}</h2>
+        {% for homework in lesson.homework|sort(attribute="date") %}
+        <article data-homework-id="{{ homework.uid }}" class="homework">
+            <h2 data-isoformat="{{ homework.date.isoformat() }}">{{ homework.strdate }}</h2>
+            <button class="edit"><img src="{{ url_for('static', filename='marker.svg') }}"/></button>
+            <button class="delete">&#x2715;</button>
+            <p>{{ homework.desc }}</p>
+        </article>
+        {% endfor %}
+    <button class="append">Добавить</button>
+</article>

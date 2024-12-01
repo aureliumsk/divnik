@@ -1,0 +1,17 @@
+{% extends "baseline.html" %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='import.css') }}" />
+<script type="module" src="{{ url_for('static', filename='import.js') }}"></script>
+{% endblock %}
+{% block title %}Импорт{% endblock %}
+{% block content %}
+<form id="fileimport">
+    <div class="field">
+        <label for="file">Файл</label>
+        <input id="file" type="file" name="file" required accept=".csv,text/csv" />
+    </div>
+    <div class="button">
+        <button type="submit">Импортировать</button>
+    </div>
+</form>
+{% endblock %}
