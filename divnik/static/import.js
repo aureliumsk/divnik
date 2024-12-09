@@ -1,5 +1,6 @@
+import { base } from "commons";
+
 const formElement = document.getElementById("fileimport");
-const base = `http://${document.location.host}`;
 const fileInput = document.getElementById("file");
 
 formElement.addEventListener("submit", async (ev) => {

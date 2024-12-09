@@ -1,16 +1,16 @@
 from flask import (
     Blueprint, Response, request, render_template, abort
 )
+from .auth import PERMISSION_HOMEWORK, PERMISSION_LESSON, assert_permissions
 import csv
 import codecs
 import logging
 import sqlite3
-from .. import msg
+from . import msg, db
 from datetime import date
 from typing import (
     Iterable
 )
-from .. import db
 
 WEEKDAY_NAMES = [
     "Пн",
@@ -40,8 +40,8 @@ class Homework:
         self.uid = uid
     @property
     def strdate(self):
-        d = WEEKDAY_NAMES[self.date.weekday()]
-        return "%d/%d/%d (%s.)" % (self.date.year, self.date.day, self.date.month, d)
+        weekday = WEEKDAY_NAMES[self.date.weekday()]
+        return f"{self.date.year:04}/{self.date.day:02}/{self.date.month:02} ({weekday}.)"
 
 class Lesson:
     def __init__(self, name: str, teacher: str):
@@ -54,14 +54,14 @@ logger = logging.getLogger(__name__)
 utf8reader = codecs.getreader("utf8")
 
 def get_lessons():
-    QUERY = (
+    query = (
         "SELECT l.id, l.name, l.teacher, h.desc, h.date, h.id FROM homework h "
         "RIGHT JOIN lesson l ON h.lesson_id = l.id AND h.date >= floor(julianday() - 1721424.5)"
     ) 
     # https://en.wikipedia.org/wiki/Rata_Die#Day_Number
     # as there is no julianday() in Python
     vals: dict[int, Lesson] = {}
-    for (luid, name, teacher, desc, date, huid) in db.query(QUERY):
+    for (luid, name, teacher, desc, date, huid) in db.query(query):
         if luid not in vals:
             vals[luid] = Lesson(name, teacher)
         if all((desc, date, huid)):
@@ -70,13 +70,13 @@ def get_lessons():
 
 
 def get_lesson(uid: int):
-    QUERY = (
+    query = (
         "SELECT l.name, l.teacher, h.desc, h.date, h.id FROM homework h "
         "RIGHT JOIN lesson l ON h.lesson_id = l.id AND h.date >= floor(julianday() - 1721424.5) "
         "WHERE l.id = ?"
     )
     lesson = None
-    for (name, teacher, desc, date, huid) in db.query(QUERY, uid):
+    for (name, teacher, desc, date, huid) in db.query(query, uid):
         if lesson is None:
             lesson = Lesson(name, teacher)
         if all((desc, date, huid)):
@@ -90,17 +90,15 @@ def index():
     return render_template("index.html", lessons=lessons)
 
 def create_homework(desc: str, date: date, lesson_id: int):
-    SQL = "INSERT INTO homework (desc, date, lesson_id) VALUES (?, ?, ?)"
+    sql = "INSERT INTO homework (desc, date, lesson_id) VALUES (?, ?, ?)"
     try:
-        db.transexec(SQL, desc, date, lesson_id)
-    except sqlite3.DatabaseError as e:
-        if e.sqlite_errorcode != FOREIGN_KEY_CONSTRAINT:
-            logger.error(f"Can't insert Homework(desc={desc!r}, date={date!r}) with {lesson_id = }", exc_info=True)
-            abort(500, original_exception=e)
+        db.texec(sql, desc, date, lesson_id)
+    except sqlite3.IntegrityError:
         abort(404, msg.message("no_row")())
 
 @blueprint.route("/create", methods=["POST"])
 def on_create_homework():
+    assert_permissions(PERMISSION_HOMEWORK)
     isodate = request.form["date"]
     desc = request.form["desc"]
     lesson_id = request.form["lesson_id"]
@@ -122,7 +120,6 @@ def modify_homework(*args, delete: bool = False) -> int:
         sql = "DELETE FROM homework WHERE id = ? RETURNING lesson_id"        
     else:
         sql = "UPDATE homework SET date = ?, desc = ? WHERE id = ? RETURNING lesson_id"
-    logger.info(f"Args are: {args}")
     cur = db.exec(sql, *args)
     row = cur.fetchone()
     if row is None:
@@ -131,6 +128,7 @@ def modify_homework(*args, delete: bool = False) -> int:
 
 @blueprint.route("/update/<int:uid>", methods=["POST"])
 def on_update_homework(uid: int):
+    assert_permissions(PERMISSION_HOMEWORK)
     isodate = request.form["date"]
     desc = request.form["desc"]
 
@@ -147,6 +145,7 @@ def on_update_homework(uid: int):
 
 @blueprint.route("/delete/<int:uid>", methods=["POST"])
 def on_delete_homework(uid: int):
+    assert_permissions(PERMISSION_HOMEWORK)
     with db.get_db():
         lid = modify_homework(uid, delete=True)
         lesson = get_lesson(lid)
@@ -161,8 +160,9 @@ def validate(reader: Iterable[list[str]]):
     
 @blueprint.route("/import", methods=["GET", "POST"])
 def import_from_file():
-    DELETE_QUERY = "DELETE FROM lesson"
-    INSERT_QUERY = "INSERT INTO lesson (name, teacher) VALUES (?, ?)"
+    assert_permissions(PERMISSION_LESSON)
+    delete_query = "DELETE FROM lesson"
+    insert_query = "INSERT INTO lesson (name, teacher) VALUES (?, ?)"
     if request.method == "GET":
         return render_template("import.html")
     else:
@@ -172,6 +172,6 @@ def import_from_file():
         if rawfile.content_type != "text/csv": abort(400, msg.message("mimetype")("file"))
         with con:
             cur = con.cursor()
-            cur.execute(DELETE_QUERY)
-            cur.executemany(INSERT_QUERY, validate(csv.reader(tablestream)))
+            cur.execute(delete_query)
+            cur.executemany(insert_query, validate(csv.reader(tablestream)))
         return "", 204

@@ -35,12 +35,15 @@ def create_app():
         cur.close()
         con.commit()
 
-    from .blueprints import pages
+    from . import pages, auth
 
     app.register_blueprint(pages.blueprint)
+    app.register_blueprint(auth.blueprint)
 
-    from .handlers import posterror
+    auth.register_functions(app)
 
-    app.register_error_handler(HTTPException, posterror)
+    from .handlers import register_handlers
+    
+    register_handlers(app)
 
     return app

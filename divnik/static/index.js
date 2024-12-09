@@ -1,4 +1,4 @@
-const base = `http://${document.location.host}`;
+import { base } from "commons";
 
 const container = document.getElementById("wrapper");
 container.addEventListener("click", (ev) => {
@@ -36,7 +36,7 @@ container.addEventListener("click", (ev) => {
 container.addEventListener("click", async (ev) => {
     const button = ev.target;
     if (button.className !== "delete") return;
-    const homework = button.parentNode;
+    const homework = button.parentNode.parentNode;
     const article = homework.parentNode;
     const homeworkId = homework.dataset.homeworkId;
     const res = await fetch(`${base}/delete/${homeworkId}`, {
@@ -56,7 +56,7 @@ container.addEventListener("click", (ev) => {
         if (button.tagName === "IMG") button = button.parentNode;
         else return;
     }
-    const homework = button.parentNode;
+    const homework = button.parentNode.parentNode;
     const article = homework.parentNode;
     const homeworkId = homework.dataset.homeworkId;
     let date = "";

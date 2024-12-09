@@ -41,8 +41,15 @@ def query(sql: str, *args) -> Iterator[tuple]:
     cur = get_db().cursor()
     for row in cur.execute(sql, args):
         yield row
+    cur.close()
 
-def transexec(sql: str, *args) -> sqlite3.Cursor:
+def row(sql: str, *args) -> tuple:
+    cur = get_db().cursor()
+    res = cur.execute(sql, args).fetchone()
+    cur.close()
+    return res
+
+def texec(sql: str, *args) -> sqlite3.Cursor:
     con = get_db()
     with con:
         return exec(sql, *args)

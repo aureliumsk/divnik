@@ -1,13 +1,16 @@
+@import url("/static/generic.css");
+
 .delete,
 .edit {
-    width: 20px;
-    height: 20px;
-    border: none;
     background: none;
     font-weight: bold;
+    width: 1.5em;
+    height: 1.5em;
+    font-size: 15px;
 }
-.container {
-    display: flex;
+.edit>img {
+    width: 15px;
+    height: 15px;
 }
 .homework>* {
     margin: 0rem;

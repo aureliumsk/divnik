@@ -3,8 +3,10 @@
         {% for homework in lesson.homework|sort(attribute="date") %}
         <article data-homework-id="{{ homework.uid }}" class="homework">
             <h2 data-isoformat="{{ homework.date.isoformat() }}">{{ homework.strdate }}</h2>
-            <button class="edit"><img src="{{ url_for('static', filename='marker.svg') }}"/></button>
-            <button class="delete">&#x2715;</button>
+            <span>
+                <button class="edit"></button>
+                <button class="delete"></button>    
+            </span>
             <p>{{ homework.desc }}</p>
         </article>
         {% endfor %}

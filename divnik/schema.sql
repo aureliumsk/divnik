@@ -9,3 +9,9 @@ CREATE TABLE IF NOT EXISTS "homework" (
     "date" DATE,
     "lesson_id" INTEGER REFERENCES "lesson"("id") ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS "user" (
+    "id" INTEGER PRIMARY KEY NOT NULL,
+    "password" TEXT,
+    "login" TEXT UNIQUE,
+    "permissions" INTEGER DEFAULT 1
+);
